@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #033c42;
+            font-family: Arial, sans-serif;
+        }
+        .container{
+            max-width: 1400px!important;
+        }
+        .main {
+            background-color: #73999d;
+            color: white;
+            padding: 30px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #668e9a;
+        }
+
+        th {
+            background-color: #668e9a;
+        }
+        .add-budget{
+            background-color:#5f8286;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        p{
+            margin: 0;
+        }
+        .total{
+            background-color: #5f8286;
+            padding: 5px 10px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main">
+            <h1>Budget Tracker System</h1>
+
+            <div class="row">
+                <div class="col-md-4 ">
+                    <div class="add-budget mb-3">
+                        <h2>Add Budget</h2>
+                        <div class="form-group">
+                            <label for="budget">Budget:</label>
+                            <input type="number" class="form-control" id="budget" placeholder="Enter budget amount">
+                        </div>
+                        <button class="btn btn-dark" onclick="addBudget()">Add Budget</button>
+                    </div>
+                    <div class="add-budget">
+                        <h2>Add Expense</h2>
+                        <div class="form-group">
+                            <label for="expenseTitle">Expense Title:</label>
+                            <input type="text" class="form-control" id="expenseTitle" placeholder="Enter expense title">
+                        </div>
+                        <div class="form-group">
+                            <label for="expenseAmount">Amount:</label>
+                            <input type="number" class="form-control" id="expenseAmount" placeholder="Enter expense amount">
+                        </div>
+                        <button class="btn btn-dark" onclick="addExpense()">Add Expense</button>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="row mb-5">
+                        <div class="col-md-4">
+                            <div class="total">
+                                <p>Total Budget: <span id="totalBudget">0.00</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="total">
+                                <p>Total Expenses: <span id="totalExpenses">0.00</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="total">
+                                <p>Budget Left: <span id="budgetLeft">0.00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">Expense History :</h4>
+                    <table id="expenseTable">
+                        <thead>
+                            <tr>
+                                <th>Expense Name</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                    <button class="btn btn-dark" onclick="resetAll()">Reset All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let budget = 0;
+        let expenses = [];
+
+        function addBudget() {
+            let newBudget = parseFloat(document.getElementById('budget').value);
+            if (!isNaN(newBudget)) {
+                budget = newBudget;
+                document.getElementById('totalBudget').innerText = budget.toFixed(2);
+                document.getElementById('budgetLeft').innerText = budget.toFixed(2);
+                document.getElementById('budget').value = '';
+            } else {
+                alert("Please enter a valid budget amount.");
+            }
+        }
+
+        function addExpense() {
+            let expenseTitle = document.getElementById('expenseTitle').value;
+            let expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+            if (expenseTitle !== '' && !isNaN(expenseAmount)) {
+                expenses.push({ title: expenseTitle, amount: expenseAmount });
+                updateExpenseTable();
+                updateBudgetLeft();
+                document.getElementById('expenseTitle').value = '';
+                document.getElementById('expenseAmount').value = '';
+            } else {
+                alert("Please enter a valid expense title and amount.");
+            }
+        }
+
+        function updateExpenseTable() {
+            let tableBody = document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            let totalExpenses = 0;
+            expenses.forEach((expense, index) => {
+                let row = tableBody.insertRow();
+                let titleCell = row.insertCell();
+                let amountCell = row.insertCell();
+                let actionCell = row.insertCell();
+
+                titleCell.innerHTML = expense.title;
+                amountCell.innerHTML = expense.amount.toFixed(2);
+                actionCell.innerHTML = '<button class="btn btn-danger" onclick="removeExpense(' + index + ')">Remove</button>';
+
+                totalExpenses += expense.amount;
+            });
+            document.getElementById('totalExpenses').innerText = totalExpenses.toFixed(2);
+        }
+
+        function removeExpense(index) {
+            expenses.splice(index, 1);
+            updateExpenseTable();
+            updateBudgetLeft();
+        }
+
+        function updateBudgetLeft() {
+            let totalExpenses = 0;
+            expenses.forEach(expense => {
+                totalExpenses += expense.amount;
+            });
+            document.getElementById('budgetLeft').innerText = (budget - totalExpenses).toFixed(2);
+        }
+
+        function resetAll() {
+            budget = 0;
+            expenses = [];
+            document.getElementById('totalBudget').innerText = '0.00';
+            document.getElementById('totalExpenses').innerText = '0.00';
+            document.getElementById('budgetLeft').innerText = '0.00';
+            updateExpenseTable();
+        }
+    </script>
+</body>
+</html>
